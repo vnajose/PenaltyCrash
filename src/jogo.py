@@ -227,6 +227,9 @@ def desenhar(tela, fontes, estado, recorde, ranking):
             estado["gols"], estado["defesas"], estado["mensagem"],
         )
 
+        if estado["fase"] == "aguardando":
+            desenhar_medidor_forca(tela, fonte_texto, estado["forca"], estado["carregando"])
+
     pygame.display.flip()
 
 
@@ -253,6 +256,9 @@ def executar_jogo():
         relogio.tick(FPS)
 
         rodando, recorde = tratar_eventos(estado, recorde, ranking)
+
+        if estado["fase"] == "aguardando" and estado["carregando"]:
+            estado["forca"] = min(estado["forca"] + FORCA_POR_FRAME, 1.0)
 
         if estado["fase"] == "animando":
             atualizar_animacao(estado)
