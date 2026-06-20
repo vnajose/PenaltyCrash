@@ -45,6 +45,7 @@ TECLAS_ZONA = {
 }
 
 POS_GOLEIRO_INICIAL = ZONAS[3]
+POS_ISOLADO = (400, 20)  
 
 
 def novo_estado():
@@ -66,8 +67,30 @@ def novo_estado():
 
 
 def iniciar_cobranca(estado):
-    """Confirma o chute: sorteia a defesa e inicia a animação da bola."""
-    estado["zona_defesa"] = escolher_defesa(ZONAS)
+    """Confirma o chute: sorteia a defesa, calcula o resultado e define os alvos da animação."""
+    zona_defesa = escolher_defesa(ZONAS)
+    estado["zona_defesa"] = zona_defesa
+
+    resultado = determinar_resultado_com_forca(
+        estado["zona_selecionada"], zona_defesa, estado["forca"]
+    )
+    estado["resultado_pendente"] = resultado
+
+    alvo_chute = ZONAS[estado["zona_selecionada"]]
+
+    if resultado == "ISOLADO":
+        # Bola vai acima da trave; goleiro segue sua leitura de jogo
+        estado["alvo_bola"] = list(POS_ISOLADO)
+        estado["alvo_goleiro"] = list(ZONAS[zona_defesa])
+    elif resultado == "DEFESA" and zona_defesa != estado["zona_selecionada"]:
+        # Defesa por reação (chute fraco): goleiro se joga na zona certa no último instante
+        estado["alvo_bola"] = list(alvo_chute)
+        estado["alvo_goleiro"] = list(alvo_chute)
+    else:
+        # GOL ou defesa por leitura correta da zona
+        estado["alvo_bola"] = list(alvo_chute)
+        estado["alvo_goleiro"] = list(ZONAS[zona_defesa])
+
     estado["pos_bola"] = list(POS_BOLA_INICIAL)
     estado["pos_goleiro"] = list(POS_GOLEIRO_INICIAL)
     estado["fase"] = "animando"
@@ -89,8 +112,8 @@ def mover_para(pos, alvo, velocidade):
 
 def atualizar_animacao(estado):
     """Atualiza a posição da bola e do goleiro durante o chute."""
-    alvo_bola = ZONAS[estado["zona_selecionada"]]
-    alvo_goleiro = ZONAS[estado["zona_defesa"]]
+    alvo_bola = estado["alvo_bola"]
+    alvo_goleiro = estado["alvo_goleiro"]
 
     mover_para(estado["pos_goleiro"], alvo_goleiro, VELOCIDADE_BOLA)
     chegou = mover_para(estado["pos_bola"], alvo_bola, VELOCIDADE_BOLA)
@@ -101,9 +124,7 @@ def atualizar_animacao(estado):
 
 def finalizar_cobranca(estado):
     """Apura o resultado da cobrança e atualiza o placar."""
-    resultado = determinar_resultado_com_forca(
-        estado["zona_selecionada"], estado["zona_defesa"], estado["forca"]
-    )
+    resultado = estado.pop("resultado_pendente")
     estado["resultado"] = resultado
 
     if resultado == "GOL":
@@ -227,8 +248,11 @@ def desenhar(tela, fontes, estado, recorde, ranking):
             estado["gols"], estado["defesas"], estado["mensagem"],
         )
 
-        if estado["fase"] == "aguardando":
-            desenhar_medidor_forca(tela, fonte_texto, estado["forca"], estado["carregando"])
+        if estado["fase"] in ("aguardando", "animando"):
+            desenhar_medidor_forca(
+                tela, fonte_texto, estado["forca"], estado["carregando"],
+                animando=(estado["fase"] == "animando"),
+            )
 
     pygame.display.flip()
 

@@ -40,15 +40,15 @@ def determinar_resultado(zona_chute, zona_defesa):
 def determinar_resultado_com_forca(zona_chute, zona_defesa, forca):
     """Determina o resultado levando em conta a força do chute (0.0 a 1.0).
 
-    - Muito forte (> 0.90): 40 % de chance de ISOLADO (bola sai pela linha).
-    - Fraco (< 0.25): mesmo que erre a zona, 35 % de chance de DEFESA extra.
+    - Muito forte (> 0.90): 70 % de chance de ISOLADO (bola sai pela linha).
+    - Fraco (< 0.25): mesmo que erre a zona, 70 % de chance de DEFESA extra.
     - Normal (0.25 – 0.90): comportamento padrão (goleiro cobre 1 zona).
     """
-    if forca > 0.90 and random.random() < 0.40:
+    if forca > 0.90 and random.random() < 0.70:
         return "ISOLADO"
     if zona_chute == zona_defesa:
         return "DEFESA"
-    if forca < 0.25 and random.random() < 0.35:
+    if forca < 0.25 and random.random() < 0.70:
         return "DEFESA"
     return "GOL"
 

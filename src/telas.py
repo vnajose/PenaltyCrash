@@ -78,7 +78,7 @@ def desenhar_hud(tela, fonte, cobranca, total, gols, defesas, mensagem, offset_y
         _texto_centralizado(tela, fonte, mensagem, AMARELO, LARGURA_TELA // 2, 555 + offset_y)
 
 
-def desenhar_medidor_forca(tela, fonte, forca, carregando):
+def desenhar_medidor_forca(tela, fonte, forca, carregando, animando=False):
     """Desenha a barra de força do chute estilo FIFA."""
     barra_x = 200
     barra_y = 487
@@ -109,13 +109,17 @@ def desenhar_medidor_forca(tela, fonte, forca, carregando):
     tela.blit(fonte.render("FORTE", True, CINZA), (barra_x + barra_largura + 6, barra_y - 2))
 
     # Instrução abaixo da barra
-    if carregando:
+    if animando:
+        instrucao = ""
+        cor_instrucao = BRANCO
+    elif carregando:
         instrucao = "Solte para chutar!"
         cor_instrucao = AMARELO
     else:
         instrucao = "Segure ENTER para carregar a forca"
         cor_instrucao = BRANCO
-    _texto_centralizado(tela, fonte, instrucao, cor_instrucao, LARGURA_TELA // 2, barra_y + barra_altura + 14)
+    if instrucao:
+        _texto_centralizado(tela, fonte, instrucao, cor_instrucao, LARGURA_TELA // 2, barra_y + barra_altura + 14)
 
 
 def desenhar_tela_inicial(tela, fonte_titulo, fonte_texto):
