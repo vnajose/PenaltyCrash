@@ -32,6 +32,7 @@ from src.telas import (
     desenhar_hud,
     desenhar_medidor_forca,
     desenhar_tela_inicial,
+    desenhar_tela_nome,
     desenhar_tela_resultado,
     desenhar_tela_placar,
 )
@@ -63,6 +64,7 @@ def novo_estado():
         "pos_goleiro": list(POS_GOLEIRO_INICIAL),
         "forca": 0.0,
         "carregando": False,
+        "nome_jogador": "",
     }
 
 
@@ -145,7 +147,7 @@ def avancar_apos_resultado(estado, recorde, ranking):
     """Vai para a próxima cobrança ou encerra a partida após a última."""
     if fim_da_partida(estado["cobranca"], TOTAL_COBRANCAS):
         estado["fase"] = "fim"
-        salvar_placar(CAMINHO_PLACAR, estado["gols"])
+        salvar_placar(CAMINHO_PLACAR, estado["gols"], estado.get("nome_jogador", "Jogador"))
         dados = carregar_placar(CAMINHO_PLACAR)
         ranking.clear()
         ranking.extend(dados["ranking"])
@@ -182,9 +184,9 @@ def tratar_eventos(estado, recorde, ranking):
         if evento.type != pygame.KEYDOWN:
             continue
 
-        # Tecla ESC: volta ao menu se estiver no placar, senão sai do jogo.
+        # Tecla ESC: volta ao menu se estiver no placar ou no input de nome, senão sai do jogo.
         if evento.key == pygame.K_ESCAPE:
-            if estado["fase"] == "placar":
+            if estado["fase"] in ("placar", "nome"):
                 estado["fase"] = "inicio"
             else:
                 rodando = False
@@ -201,10 +203,22 @@ def tratar_eventos(estado, recorde, ranking):
 
         elif estado["fase"] == "inicio":
             if evento.key in (pygame.K_RETURN, pygame.K_SPACE):
-                estado["fase"] = "aguardando"
-                estado["mensagem"] = "Escolha a zona (1-5) e confirme com ENTER"
+                estado["fase"] = "nome"
+                estado["nome_jogador"] = ""
             elif evento.key == pygame.K_p:
                 estado["fase"] = "placar"
+
+        elif estado["fase"] == "nome":
+            if evento.key == pygame.K_RETURN and estado["nome_jogador"].strip():
+                estado["nome_jogador"] = estado["nome_jogador"].strip()
+                estado["fase"] = "aguardando"
+                estado["mensagem"] = "Escolha a zona (1-5) e confirme com ENTER"
+            elif evento.key == pygame.K_BACKSPACE:
+                estado["nome_jogador"] = estado["nome_jogador"][:-1]
+            elif len(estado["nome_jogador"]) < 16:
+                char = evento.unicode
+                if char.isprintable() and char.strip():
+                    estado["nome_jogador"] += char
 
         elif estado["fase"] == "aguardando":
             if evento.key in TECLAS_ZONA:
@@ -227,6 +241,9 @@ def desenhar(tela, fontes, estado, recorde, ranking):
 
     if estado["fase"] == "placar":
         desenhar_tela_placar(tela, fonte_titulo, fonte_texto, recorde, ranking)
+
+    elif estado["fase"] == "nome":
+        desenhar_tela_nome(tela, fonte_titulo, fonte_texto, estado["nome_jogador"])
 
     elif estado["fase"] == "inicio":
         desenhar_tela_inicial(tela, fonte_titulo, fonte_texto)

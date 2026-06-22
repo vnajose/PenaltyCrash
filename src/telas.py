@@ -122,6 +122,28 @@ def desenhar_medidor_forca(tela, fonte, forca, carregando, animando=False):
         _texto_centralizado(tela, fonte, instrucao, cor_instrucao, LARGURA_TELA // 2, barra_y + barra_altura + 14)
 
 
+def desenhar_tela_nome(tela, fonte_titulo, fonte_texto, nome_atual):
+    """Tela de input do nome do jogador antes da partida."""
+    tela.fill(VERDE_ESCURO)
+
+    _texto_centralizado(tela, fonte_titulo, "Quem vai jogar?", AMARELO, LARGURA_TELA // 2, 140)
+    pygame.draw.line(tela, AMARELO, (150, 200), (650, 200), 2)
+
+    caixa = pygame.Rect(200, 250, 400, 56)
+    pygame.draw.rect(tela, (25, 25, 25), caixa)
+    pygame.draw.rect(tela, BRANCO, caixa, 2)
+
+    cursor = "|" if (pygame.time.get_ticks() // 500) % 2 == 0 else " "
+    _texto_centralizado(tela, fonte_titulo, nome_atual + cursor, BRANCO, LARGURA_TELA // 2, caixa.centery)
+
+    _texto_centralizado(
+        tela, fonte_texto,
+        "Digite seu nome e pressione ENTER para jogar",
+        CINZA, LARGURA_TELA // 2, 340,
+    )
+    _texto_centralizado(tela, fonte_texto, "ESC  —  Voltar ao menu", CINZA, LARGURA_TELA // 2, ALTURA_TELA - 55)
+
+
 def desenhar_tela_inicial(tela, fonte_titulo, fonte_texto):
     """Tela de abertura com o nome do jogo e as instruções."""
     tela.fill(VERDE_CAMPO)
@@ -155,8 +177,10 @@ def desenhar_tela_placar(tela, fonte_titulo, fonte_texto, recorde, ranking):
     _texto_centralizado(tela, fonte_texto, "TOP 5 MELHORES PARTIDAS:", AMARELO, LARGURA_TELA // 2, 235)
 
     if ranking:
-        for posicao, gols in enumerate(ranking, start=1):
-            linha = f"{posicao}.   {gols} gol{'s' if gols != 1 else ''}"
+        for posicao, entrada in enumerate(ranking, start=1):
+            nome = entrada["nome"] if isinstance(entrada, dict) else "Jogador"
+            gols = entrada["gols"] if isinstance(entrada, dict) else entrada
+            linha = f"{posicao}.  {nome}  —  {gols} gol{'s' if gols != 1 else ''}"
             _texto_centralizado(tela, fonte_texto, linha, BRANCO, LARGURA_TELA // 2, 235 + posicao * 45)
     else:
         _texto_centralizado(
@@ -189,8 +213,10 @@ def desenhar_tela_resultado(tela, fonte_titulo, fonte_texto, venceu, gols, defes
 
     if ranking:
         _texto_centralizado(tela, fonte_texto, "TOP 5 PARTIDAS:", AMARELO, LARGURA_TELA // 2, 255)
-        for posicao, pontuacao in enumerate(ranking, start=1):
-            linha = f"{posicao}.  {pontuacao} gol{'s' if pontuacao != 1 else ''}"
+        for posicao, entrada in enumerate(ranking, start=1):
+            nome = entrada["nome"] if isinstance(entrada, dict) else "Jogador"
+            gols = entrada["gols"] if isinstance(entrada, dict) else entrada
+            linha = f"{posicao}.  {nome}  —  {gols} gol{'s' if gols != 1 else ''}"
             _texto_centralizado(tela, fonte_texto, linha, BRANCO, LARGURA_TELA // 2, 255 + posicao * 35)
 
     _texto_centralizado(

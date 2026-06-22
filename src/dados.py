@@ -3,23 +3,27 @@ import json
 TAMANHO_RANKING = 5
 
 
-def salvar_placar(caminho, gols):
+def salvar_placar(caminho, gols, nome="Jogador"):
     """Salva o resultado no JSON de placar, atualizando recorde e ranking."""
     placar = carregar_placar(caminho)
     if gols > placar["recorde"]:
         placar["recorde"] = gols
-    placar["ranking"].append(gols)
-    placar["ranking"].sort(reverse=True)
+    placar["ranking"].append({"nome": nome, "gols": gols})
+    placar["ranking"].sort(key=lambda e: e["gols"], reverse=True)
     placar["ranking"] = placar["ranking"][:TAMANHO_RANKING]
     with open(caminho, "w", encoding="utf-8") as arquivo:
         json.dump(placar, arquivo, ensure_ascii=False, indent=2)
 
 
 def carregar_placar(caminho):
-    """Carrega o placar do JSON; retorna estrutura vazia se não existir."""
+    """Carrega o placar do JSON; migra formato antigo se necessário."""
     try:
         with open(caminho, "r", encoding="utf-8") as arquivo:
-            return json.load(arquivo)
+            dados = json.load(arquivo)
+        ranking = dados.get("ranking", [])
+        if ranking and not isinstance(ranking[0], dict):
+            dados["ranking"] = [{"nome": "Jogador", "gols": g} for g in ranking]
+        return dados
     except (FileNotFoundError, json.JSONDecodeError):
         return {"recorde": 0, "ranking": []}
 
